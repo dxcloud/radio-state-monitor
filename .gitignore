@@ -1,0 +1,13 @@
+# .gitignore
+
+# backups
+*~
+
+# build directory
+build
+
+# automatically generated files
+ReportMsg.java
+*.class
+*.dat
+
