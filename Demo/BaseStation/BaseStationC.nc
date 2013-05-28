@@ -47,9 +47,5 @@ implementation
   components PrintfC;
   components SerialStartC;
 #endif
-
-#ifdef TIMESTAMP_ENABLED
-  App.PacketTimeStamp->Radio;
-#endif
 }
 

@@ -15,13 +15,13 @@
 
 #include "report_message.h"
 
+#ifdef SERIAL_COMM_ENABLED
+#undef PRINTF_ENABLED
+#endif
+
 #ifdef PRINTF_ENABLED
 #include "printf.h"
 #endif
-
-//#ifdef SERIAL_COMM_ENABLED
-//#undef PRINTF_ENABLED
-//#endif
 
 module BaseStationP
 {
@@ -40,10 +40,6 @@ module BaseStationP
   uses interface AMSend as SerialSend;
   uses interface Packet as SerialPacket;
   uses interface AMPacket as SerialAMPacket;
-#endif
-
-#ifdef TIMESTAMP_ENABLED
-  uses interface PacketTimeStamp<TMilli, uint32_t>;
 #endif
 }
 implementation
