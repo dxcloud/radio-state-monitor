@@ -57,7 +57,8 @@ This directory contains the modified CC2420 driver file. Replace the original
 directory (located in *$(TOSDIR)/chips*) by this one.
 To use the modified driver, define the flag **CC2420_RADIO_STATE_CAPTURE** in
 the Makefile of the application.
-Think to do a backup of the original directory before replacing it.
+
+**NOTE:** Make a backup of the original directory before replacing it.
 
 Author
 --------------------------------------------------------------------------------
