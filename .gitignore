@@ -4,10 +4,14 @@
 *~
 
 # build directory
-build
+build/
 
 # automatically generated files
 ReportMsg.java
 *.class
 *.dat
+*.log
+*.aux
+*.png
+*.toc
 
