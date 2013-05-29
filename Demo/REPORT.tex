@@ -1,0 +1,134 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{array}
+
+\title{Real Time radio state capturing on TelosB under TinyOS}
+\author{Chengwu \sc{Huang}}
+\date{\today}
+
+\setlength\parindent{0pt}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\newpage
+
+\section*{\sc{Abstract}}
+
+
+This paper describes the work carried out so far about capturing radio state.
+All tests are done with a TelosB mote.
+
+\section{\sc{Introduction}}
+
+
+TelosB integrates a CC2420 radio chip which is designed for low-power wireless
+application. In this paper I present an implementation for monitoring the radio state on TelosB under \textbf{TinyOS}.
+TinyOS presents a Hardware Abstraction Architecture (\textbf{HAA}) for CC2420 which consists of three layers. As described in [TEP 2] the three layers are Hardware Presentation Layer (\textbf{HPL}), Hardware Adaptation Layer (\textbf{HAL}) and Hardware Interface Layer (\textbf{HIL}).
+
+\section{\sc{CC2420 Radio}}
+
+  \subsection{Hardware Abstraction Architecture of CC2420 under TinyOS}
+
+
+CC2420 hardware abstraction functionality is organized into three layers of components. Each layer provides interfaces which could be used by the upper layers.
+
+The HPL of the CC2420 is directly connected to the radio, in the order to handle interrupts or to set GPIO pins.
+The HAL is responsible for interacting with the radio throught the \textbf{SPI} bus. This layer components use the interfaces provided by the HPL components.
+The HIL provides hardware-independent interfaces used by cross-platform applications.
+
+  \subsection{Radio state machine}
+
+
+As described in the datasheet, \textbf{CC2420} has a built-in state machine, which controls the changes of state. The change of state is done by using command strobes or by internal events (e.g. the transmission is completed).
+
+There are at total of five macro states:
+  \begin{itemize}
+    \item Voltage regulator off (\textbf{OFF}) - voltage regulator is off
+    \item Power down mode (\textbf{PD}) - voltage regulator is on
+    \item Idle mode (\textbf{IDLE}) - voltage regulator and crystal oscillator are on
+    \item Reception mode (\textbf{RX}) - the radio is receiving
+    \item Transmission mode (\textbf{TX}) - the radio is tranmitting
+  \end{itemize}
+
+The reception/transmission mode can be divided into several states (e.g. TX$\_$CALIBRATE, TX$\_$FRAME,...). These states are not considered as specific states.
+
+
+\section{\sc{Implementation}}
+
+  \subsection{CC2420 driver modifications}
+
+
+The HAL manages resources and controls the status of CC2420. Modifications are done is this layer, because the components of this layer, especially \emph{CC2420ControlP}, \emph{CC2420TransmitP} and \emph{CC2420ReceiveP} are reponsible for configuring the ChipCon CC2420 Radio.
+
+The implementation is event driven so that it provides a real time monitoring.
+
+  \subsection{States capturing}
+
+
+Each time a command strobe or an event (which changes the radio state) is triggered, a signal is sent with the value of the new current. The new current state is determined based on the radio state machine provided by the datasheet. For instance, the current state is IDLE and if a command strobe SRXON is detected, the radio will be now in RX mode.
+These components provide also a new interface to let upper components handle events.
+
+A new component is developed, this component is wired against the HAL components of CC2420 so that it collects radio state change events. A microsecond accuracy counter is used to determine the duration of the previous state. 
+
+
+\section{\sc{Tests and results}}
+
+  \subsection{Tests}
+
+
+Four TelosB motes are used to test the current implementation of the modified driver, one as a Base Station (\textbf{BS}), and the others are used for sending packets. Each sending mote sends a report about its radio activities to the BS every minute. Between two reports, the node can send some "dummy packets" or going into Power Down Listening mode.
+The dummy packets do not have a destination, their only purpose is to modify the total duration of transmission mode.
+
+The Base Station is connected to a PC via USB. Each time a packet is received, it will display the packet fields on a displayer. It computes also the received signal power (RSSI). 
+
+
+  \subsection{Report packet format}
+
+
+The report packet format is shown as below:
+
+  \begin{tabular}{|c|c|c|c|c|c|c|c|}
+    \hline
+    Octets & 2 & 2 & 4 & 4 & 4 & 4 & 4 \\
+    \hline
+    Field & ID & SN & OD & PD & LD & RD & TD \\
+    \hline
+  \end{tabular}
+
+  \begin{itemize}
+    \item ID: Identifier of the source node
+    \item SN: Sequence number
+    \item OD: OFF mode duration
+    \item PD: Power Down mode duration
+    \item LD: Idle mode duration
+    \item RD: Reception mode duration
+    \item TD: Transmission mode duration
+  \end{itemize}
+
+
+The unit of a state duration is millisecond.
+The length of a report packet is 24 octets.
+
+  \subsection{Results}
+
+
+
+\section{\sc{Conclusion}}
+
+\section*{\sc{References}}
+  \begin{itemize}
+    \item[] [TEP 2] Hardware Abstraction Architecture
+    \item[] [TEP 126] CC2420 Radio Stack
+    \item[] TI/ChipCon CC2420 datasheet
+  \end{itemize}
+
+\section*{\sc{Appendix}}
+
+\end{document}
+
