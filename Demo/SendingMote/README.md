@@ -27,6 +27,10 @@ duration of Transmission mode (TX mode). To enable these packets, set the flag
 **DUMMY_SEND_ENABLED** in the Makefile. Because these packets are sent periodic
 way, the period can be defined by **DUMMY_PERIOD** (the default value 1000 ms).
 
+The flag **RANDOM_ENABLED** is available, a dummy packet will not be sent
+periodically. The interval between 2 dummy packets is a value between 0 and
+REPORT_PEDIOD.
+
 ### Low Power Listening
 LPL allows the node to turn off voltage regulator (OFF mode). To allow LPL, use
 the flag **LOW_POWER_LISTENING**. The constant **LPL_WAKEUP_INTERVAL** is
@@ -39,7 +43,7 @@ send another one for acknowledgement after a delay. There is a maximum number of
 sending, if this number is reached the packet is simply dropped.
 In the Makefile, **ACK_DELAY** defines the delay (in milliseconds) to wait 
 before sending another packet, and **MAX_ATTEMPT_SEND** is maximum number of
-sending. By default, the delay is 500 ms and the maximum number of sending is 5.
+sending. By default, the delay is 1 s and the maximum number of sending is 3.
 
             (start)
                |
@@ -58,6 +62,9 @@ sending. By default, the delay is 500 ms and the maximum number of sending is 5.
              (end)<-------------------------+
 
         N: number of maximum sending
+
+### Modification
+RandomC component is added to provides a generation of a pseudo-random value.
 
 Author
 --------------------------------------------------------------------------------

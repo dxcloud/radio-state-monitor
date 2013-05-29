@@ -53,6 +53,10 @@ implementation
 
   components new AMSenderC(AM_DUMMYMSG) as DummySender;
   App.DummySend -> DummySender;
+#  ifdef RANDOM_ENABLED
+  components RandomC;
+  App.Random -> RandomC;
+#  endif
 #endif
 
 #ifdef PRINTF_ENABLED

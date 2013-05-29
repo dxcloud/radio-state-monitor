@@ -2,10 +2,15 @@
  * @file    Demo/SendingMote/SendingMoteP.nc
  * @author  Chengwu Huang
  * @date    2013-05-16
- * @version 1.1
+ * @version 1.3
  * @brief   The node sends a report to the BaseStation
  *          The flags `LOW_POWER_LISTENING', `DUMMY_SEND_ENABLED' and
  *          `ACKNOWLEDGMENT_ENABLED' will change its radio activities.
+ * @details Adds
+ *          - LPL
+ *          - Sending dummy packet
+ *          - Acknowledgement
+ *          - Random
  */
 
 #include "report_message.h"
@@ -27,11 +32,11 @@
 #endif
 
 #ifndef ACK_DELAY
-#define ACK_DELAY 500
+#define ACK_DELAY 1000
 #endif
 
 #ifndef MAX_ATTEMPT_SEND
-#define MAX_ATTEMPT_SEND 5
+#define MAX_ATTEMPT_SEND 3
 #endif
 
 module SendingMoteP
@@ -53,12 +58,16 @@ module SendingMoteP
 #ifdef DUMMY_SEND_ENABLED
   uses interface Timer<TMilli> as DummyTimer;
   uses interface AMSend as DummySend;
+#  ifdef RANDOM_ENABLED
+  uses interface Random;
+#  endif
 #endif
 
 #ifdef ACKNOWLEDGEMENT_ENABLED
   uses interface PacketAcknowledgements as Ack;
   uses interface Timer<TMilli> as AckTimer;
 #endif
+
 }
 
 implementation
@@ -85,6 +94,11 @@ implementation
 
   void fail_blink();
 
+#ifdef RANDOM_ENABLED
+  uint32_t get_rand() {
+    return (call Random.rand32() & REPORT_PERIOD);
+  }
+#endif
 
 /******************************************************************************/
 /* Event (Boot) booted                                                        */
@@ -108,7 +122,11 @@ implementation
 #endif
 
 #ifdef DUMMY_SEND_ENABLED
+#  ifdef RANDOM_ENABLED
+      call DummyTimer.startOneShot(get_rand());
+#  else
       call DummyTimer.startPeriodic(DUMMY_PERIOD);
+#  endif
 #endif
     }
     else {
@@ -185,6 +203,9 @@ implementation
       busy = TRUE;
       call DummySend.send(AM_DUMMY_ADDR, &dummy_packet, 0);
     }
+#  ifdef RANDOM_ENABLED
+    call DummyTimer.startOneShot(get_rand());
+#  endif
   }
 
 /******************************************************************************/
