@@ -36,5 +36,9 @@ ReportMsg.java: $(HEADER)
 # Delete automatically generated files and backups
 ###
 clean:
-	rm -rf *~ *.class ReportMsg.java output.dat
+	rm -rf *~ *.dat *.png
+
+mrproper: clean
+	rm -rf *.class ReportMsg.java
+
 

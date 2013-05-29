@@ -2,14 +2,17 @@
  * @file    Demo/java/Demo.java
  * @author  Chengwu Huang <chengwhuang@gmail.com>
  * @date    2013-05-20
- * @version 1.0
+ * @version 1.1
  * @brief   Java application for displaying radio activity report
+ * @details Changes:
+ *          - Time diagram (png file) generation
  */
 
 import java.io.IOException;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.lang.*;
 
 import net.tinyos.message.*;
 import net.tinyos.packet.*;
@@ -17,8 +20,10 @@ import net.tinyos.util.*;
 
 public class Demo implements MessageListener {
 
+  final private String outputFile = "output.dat";
   private MoteIF moteIF;
   private File file;
+  private String[] cmd = new String[] {"./plot.sh", outputFile, " "};
 
   public Demo(MoteIF moteIF) {
     this.moteIF = moteIF;
@@ -27,23 +32,8 @@ public class Demo implements MessageListener {
 
   public void messageReceived(int to, Message message) {
     ReportMsg msg = (ReportMsg) message;
-/*
-    long totalDuration = 0;
-    for (int i = 0; i < 5; i++) {
-      totalDuration += msg.getElement_duration_states(i);
-    }
 
-    System.out.println("Mote ID          : " + msg.get_node_id());
-    System.out.println("Sequence number  : " + msg.get_seq_num());
-    System.out.println("OFF              : " + msg.getElement_duration_states(0));
-    System.out.println("PD               : " + msg.getElement_duration_states(1));
-    System.out.println("IDLE             : " + msg.getElement_duration_states(2));
-    System.out.println("RX               : " + msg.getElement_duration_states(3));
-    System.out.println("TX               : " + msg.getElement_duration_states(4));
-    System.out.println("-> total duration: " + totalDuration);
-    System.out.println("RSSI             : " + msg.get_rssi());
-    System.out.println("-------------------");
-*/
+    int nodeID= msg.get_node_id();
 
     System.out.println(msg.get_node_id() + " "
                       + msg.get_seq_num() + " "
@@ -59,7 +49,7 @@ public class Demo implements MessageListener {
     try {
       FileWriter writer = new FileWriter(file, true);
       PrintWriter printer = new PrintWriter(writer, true);
-      printer.println(msg.get_node_id() + " "
+      printer.println(msg.get_node_id() + ": "
                       + msg.get_seq_num() + " "
                       + msg.getElement_duration_states(0) + " "
                       + msg.getElement_duration_states(1) + " "
@@ -70,9 +60,12 @@ public class Demo implements MessageListener {
                       + System.currentTimeMillis()
                       );
       printer.close();
-    } catch (IOException e) {
+      cmd[2] = nodeID + "";
+      Runtime.getRuntime().exec(cmd);
+    } catch (Exception e) {
       e.printStackTrace();
     }
+
   }
 
   private static void usage() {
@@ -80,7 +73,8 @@ public class Demo implements MessageListener {
   }
 
   public void initialize() {
-    file = new File("output.dat");
+    //file = new File("output.dat");
+    file = new File(outputFile);
   }
 
   public static void main(String[] args) throws Exception {
