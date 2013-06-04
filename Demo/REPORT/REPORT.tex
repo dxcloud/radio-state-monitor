@@ -1,0 +1,282 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{verbatim}
+\usepackage{hyperref}
+
+\title{Real Time radio state capturing on TelosB under TinyOS}
+\author{Chengwu Huang, \\ Nimbus Centre, Cork Institure of Technology}
+\date{\today}
+
+\setlength\parindent{0pt}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\newpage
+
+\section*{\sc{Abstract}}
+
+\textit{The energy consumption is one of the major issues of wireless sensors such as TelosB which use CC2420 chip as RF transceiver. This paper deals with the implementation for capturing radio states; knowing the duration of each radio state helps to compute the level of the batteries. The implementation presented in this paper consists of modifying the driver of CC2420 in the order to signal the current state of the radio. All radio state change events were handled by a component. The capturing functionalities were tested by using TelosB motes under TinyOS 2.1.2.}
+
+\section{\sc{Introduction}}
+
+TelosB integrates a \textbf{CC2420} radio chip which is designed for low-power wireless application. In this paper an implementation is presented to capturing the radio state on TelosB under \textbf{TinyOS}.
+
+TinyOS provides a Hardware Abstraction Architecture (\textbf{HAA}) for CC2420 which consists of three layers which are Hardware Presentation Layer (\textbf{HPL}), Hardware Adaptation Layer (\textbf{HAL}) and Hardware Interface Layer (\textbf{HIL}).
+
+Modifications are occurred in the second layer of the HAA to be able to signal each state change of the radio. TelosB motes are used to verify the capturing functionalities.
+
+\textbf{Keywords:} CC2420, TinyOS, TelosB, Radio States.
+
+\section{\sc{CC2420 Radio}}
+
+  \subsection{Hardware Abstraction Architecture of CC2420 under TinyOS}
+
+CC2420 hardware abstraction functionalities is organized into three layers of components as presented in \cite{tep2}. Each layer provides interfaces which could be used by the upper layers. This abstraction aims to hide the implementation details of hardware architecture, such as timer, interrupt, SPI, etc.
+
+The HPL of the CC2420 is directly connected to the radio, in the order to handle interrupts or to set GPIO pins.
+The HAL is responsible for interacting with the radio throught the \textbf{SPI} bus. This layer components use the interfaces provided by the HPL components.
+The HIL provides hardware-independent interfaces used by cross-platform applications.
+
+	\begin{figure}[t]
+    \centering
+		\includegraphics[scale=0.4]{Diagram1}
+		\caption{Hardware Abstraction Architecture of CC2420}
+    \label{fig:haa}
+	\end{figure}
+
+The figure~\ref{fig:haa} describes the current HAA of CC2420.
+
+  \subsection{Radio state machine}
+
+As described in the datasheet \cite{cc2420}, CC2420 has a built-in state machine, which controls the changes of state. The change of state is done by using command strobes or by internal events (e.g. the transmission is completed). See figure \ref{fig:statemachine} for the CC2420 state machine.
+
+
+There are at total five macro-states:
+  \begin{itemize}
+    \item Voltage regulator off (\textbf{OFF}) - voltage regulator is off
+    \item Power down mode (\textbf{PD}) - voltage regulator is on
+    \item Idle mode (\textbf{IDLE}) - voltage regulator and crystal oscillator are on
+    \item Reception mode (\textbf{RX}) - the radio is receiving
+    \item Transmission mode (\textbf{TX}) - the radio is tranmitting
+  \end{itemize}
+
+The reception/transmission mode can also be divided into several "sub-states" (e.g. TX$\_$CALIBRATE, TX$\_$FRAME,...). These states are not considered as specific states, therefore only five states are implemented in the current architecture.
+
+\section{\sc{Implementation}}
+
+  \subsection{CC2420 driver}
+
+The HAL manages resources and controls the status of CC2420. Modifications are done is this layer, because the components of this layer, especially \emph{CC2420ControlP}, \emph{CC2420TransmitP} and \emph{CC2420ReceiveP} are reponsible for configuring the ChipCon CC2420 Radio.
+
+  \subsection{States capturing}
+
+Each time a command strobe or an event (which changes the radio state) is triggered, a signal is sent with the value of the new current state. This state is determined based on the radio state machine provided by the datasheet. For instance, if the current state is IDLE and a command strobe SRXON is detected, the new one will be RX.
+Components within HAL provide a new interface to let upper components handle events.
+
+Moreover, a new component is developed, this component is wired against the HAL components of CC2420 so that it collects all radio state change events. A microsecond accuracy Counter is also used to determine the duration of the previous state.
+
+\section{\sc{Tests and results}}
+
+  \subsection{Components}
+
+The following components are used for the tests:
+
+  \begin{itemize}
+    \item StateCaptureP: collects radio states from CC2420 driver
+    \item SendingMoteP: sends a radio activities report.
+    \item BaseStationP: responsible for receiving report packets from SendingMoteC, and it sends these packets to a PC.
+  \end{itemize}
+
+A java application is also used to display the packet received by the BaseStationC.
+
+The wiring of these components are shown in figures \ref{fig:statecapturec}, \ref{fig:sendingmotec} and \ref{fig:basestationc}.
+
+
+  \subsection{Test description}
+
+Four TelosB motes are used to test the current implementation of the modified driver, one as a Base Station, and the others are used for sending packets. Each sending mote sends a report about its radio activities to the Base Station every minute. Between two reports, the node can send some "dummy packets" or going into Power Down Listening (\textbf{LPL}) mode.
+These dummy packets do not have a destination, their only purpose is to modify the total duration of transmission mode.
+
+The Base Station is connected to a PC via USB. Each time a packet is received, it will display the packet fields on a terminal. The received signal power (RSSI) and the timestamp are also displayed.
+
+The figure~\ref{fig:testbench} shows the disposition of the motes for this test.
+
+  \begin{figure}[here]
+    \centering
+    \includegraphics[scale=0.6]{Diagram3}
+    \caption{Disposition of the motes}
+    \label{fig:testbench}
+  \end{figure}
+
+  \subsection{Report packet format}
+
+The report packet format is shown as below:
+
+  \begin{tabular}{|c|c|c|c|c|c|c|c|}
+    \hline
+    Octets & 2 & 2 & 4 & 4 & 4 & 4 & 4 \\
+    \hline
+    Field & ID & SN & OD & PD & LD & RD & TD \\
+    \hline
+  \end{tabular}
+
+  \begin{itemize}
+    \item ID: Identifier of the source node
+    \item SN: Sequence number
+    \item OD: OFF mode duration
+    \item PD: Power Down mode duration
+    \item LD: Idle mode duration
+    \item RD: Reception mode duration
+    \item TD: Transmission mode duration
+  \end{itemize}
+
+
+The unit of a state duration is millisecond and the report packet length is 24 bytes.
+
+  \subsection{Results}
+
+The displayed packet are shown as below:
+
+  \begin{verbatim}
+    2 1 54535148 23503 86578 6450901 55755 0 1369820224458
+    3 1 60679467 4700 17308 873793 10172 14 1369820230634
+    4 1 60639697 3133 11539 664716 6460 -11 1369820237977
+    2 2 54014792 23538 86590 6526881 82738 0 1369820283049
+    3 2 60744603 4701 17307 899378 8379 14 1369820289235
+    4 2 60945706 2744 10094 453842 4723 -9 1369820296570
+  \end{verbatim}
+
+The first seven values of each are sent by a Sending Mote, the last two values refere to the RSSI and the timestamp given by the Base Station.
+
+The figure~\ref{fig:histogram} shows the duration of each state based on the received packets.
+
+  \begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.5]{node2}
+    \caption{Radio activities (based on twenty reports)}
+    \label{fig:histogram}
+  \end{figure}
+
+  \begin{figure}
+    \centering
+    \includegraphics[scale=0.5]{node2zommed}
+    \caption{Radio activities (zoomed)}
+    \label{fig:histogram2}
+  \end{figure}
+
+\section{\sc{Conclusion}}
+
+The proposed state capturing implementation is event driven, unlike previously implementation based on the reading of the \textbf{FSMSTATE} register, the current implementation is able to monitor the activities of the radio in real time.
+
+\newpage
+
+\section*{\sc{Appendix}}
+
+  \subsection*{CC2420 current consumption}
+
+	\begin{table}[h]
+	\begin{tabular}{ | p{8cm} | p{3cm} |}
+		\hline
+		\bf{Parameter} & \bf{Typical value} \\
+		\hline
+		\hline
+		Voltage regulator off (OFF) & $0.02$ to $1\ \mu A$ \\
+		\hline
+		Power Down mode (PD) & $20\ \mu A$ \\
+		\hline
+		Idle mode (IDLE) & $426\ \mu A$ \\
+		\hline
+		Receive mode & $18.8\ mA$ \\
+		\hline
+		Transmit mode & \\
+		$Output\ Power = 0\ dBm $ & $17.4\ mA$ \\
+		$Output\ Power = -1\ dBm $ & $16.5\ mA$ \\
+		$Output\ Power = -3\ dBm $ & $15.2\ mA$ \\
+		$Output\ Power = -5\ dBm $ & $13.9\ mA$ \\
+		$Output\ Power = -7\ dBm $ & $12,5\ mA$ \\
+		$Output\ Power = -10\ dBm $ & $11.2\ mA$ \\
+		$Output\ Power = -15\ dBm $ & $9.9\ mA$ \\
+		$Output\ Power = -25\ dBm $ & $8.5\ mA$ \\
+		\hline
+	\end{tabular}
+	\caption{Current consumption in different states}
+	\end{table}
+
+  \subsection*{CC2420 Radio control states}
+
+  \begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.4]{Diagram2}
+    \caption{CC2420 Radio state machine}
+    \label{fig:statemachine}
+  \end{figure}
+
+  \subsection*{Component wiring}
+
+
+  \begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.5]{StateCaptureC}
+    \caption{StateCaptureC (generated by nesdoc)}
+    \label{fig:statecapturec}
+  \end{figure}
+
+
+  \begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.25]{SendingMoteC}
+    \caption{SendingMoteC (generated by nesdoc)}
+    \label{fig:sendingmotec}
+  \end{figure}
+
+
+  \begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.4]{BaseStationC}
+    \caption{BaseStationC (generated by nesdoc)}
+    \label{fig:basestationc}
+  \end{figure}
+
+
+
+\begin{thebibliography}{1}
+  \bibitem{tep2}
+    TinyOS 2.0.2 Documentation
+    \emph{``TEP 2: Hardware Abstraction Architecture"},
+    Available at:
+    \url{http://www.tinyos.net/tinyos-2.x/doc/html/tep2.html}
+
+  \bibitem{tep126}
+    TinyOS 2.0.2 Documentation
+    \emph{``TEP 126: CC2420 Radio Stack"},
+    Available at:
+    \url{http://www.tinyos.net/tinyos-2.x/doc/html/tep126.html}
+
+  \bibitem{cc2420}
+    Texas Instruments
+    \emph{``2.4 GHz IEEE 802.15.4 / ZigBee-ready RF Transciver"}.
+    Availbable at:
+    \url{www.ti.com/lit/ds/symlink/cc2420.pdf}
+
+\end{thebibliography}
+
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+

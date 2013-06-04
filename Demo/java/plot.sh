@@ -1,14 +1,14 @@
 #!/bin/sh
 
-############################################
-# Author: Chengwu HUANG                    #
-# Plot a Time diagram with .png extension  #
-# The program 'gnuplot' must be installed  #
-# The input file must have .dat extension  #
-# Check the location of gnuplottemplate    #
-#                                          #
-# USAGE: ./plot.sh <filename> <nodeID>     #
-############################################
+################################################################################
+# Author: Chengwu HUANG
+# Plot a Time diagram with `.png' extension
+# The program `gnuplot' is needed
+# The input file must have `.dat' extension
+# The file `diagram.gnuplot' must be in the same directory as this file
+#
+# USAGE: ./plot.sh <filename> <nodeID>
+################################################################################
 
 if [ $# -eq 2 ] ; then
 
@@ -18,15 +18,19 @@ if [ $# -eq 2 ] ; then
 
   grep $nodeid $1 > tmp.dat
 
+  sed '1 i\
+  ID Sequence OFF PD IDLE RX TX RSSI Timestamp' tmp.dat > tmp1.dat
+
   sed -e "s/OUTPUT/${filename}_node_$2\.png/" \
-  -e "s/INPUT/tmp\.dat/" \
+  -e "s/INPUT/tmp1\.dat/" \
   $gnuplottemplate > $filename.gnuplot
 
-  # Plot with gnuplot
+  ### Plot with gnuplot
   gnuplot $filename.gnuplot
 
+  ### Delete temporary files
   rm $filename.gnuplot
-  rm tmp.dat
+  rm tmp.dat tmp1.dat
 
 else
 

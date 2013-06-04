@@ -33,8 +33,6 @@ public class Demo implements MessageListener {
   public void messageReceived(int to, Message message) {
     ReportMsg msg = (ReportMsg) message;
 
-    int nodeID= msg.get_node_id();
-
     System.out.println(msg.get_node_id() + " "
                       + msg.get_seq_num() + " "
                       + msg.getElement_duration_states(0) + " "
@@ -60,8 +58,15 @@ public class Demo implements MessageListener {
                       + System.currentTimeMillis()
                       );
       printer.close();
-      cmd[2] = nodeID + "";
-      Runtime.getRuntime().exec(cmd);
+
+/*
+ * Uncomment the next two lines to enable the application to execute 'plot.sh'
+ * script (drawing time diagram for each node).
+ */
+
+//      cmd[2] = msg.get_node_id() + "";
+//      Runtime.getRuntime().exec(cmd);
+
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -73,7 +78,6 @@ public class Demo implements MessageListener {
   }
 
   public void initialize() {
-    //file = new File("output.dat");
     file = new File(outputFile);
   }
 
