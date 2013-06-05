@@ -5,6 +5,7 @@
 
 # build directory
 build/
+output/
 
 # automatically generated files
 ReportMsg.java
@@ -14,4 +15,7 @@ ReportMsg.java
 *.aux
 *.png
 *.toc
+
+# archive
+*.tar
 
