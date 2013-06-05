@@ -8,7 +8,7 @@ COMPONENT=SendingMoteC
 # LPL_WAKEUP_INTERVAL defines the node's radio wakeup interval in milliseconds.
 # At the end of each interval, the node will wakeup and check for radio
 # activities and then go to OFF mode.
-# NOTE: the flag LOW_POWER_LISTENING must be set
+# NOTE: the flag LOW_POWER_LISTENING must be defined
 ###
 CFLAGS += -DLOW_POWER_LISTENING
 CFLAGS += -DLPL_WAKEUP_INTERVAL=10000U
@@ -18,7 +18,7 @@ CFLAGS += -DLPL_WAKEUP_INTERVAL=10000U
 # Possible value are 31, 27, 23, 19, 15, 11, 7, 3
 # see CC2420 datasheet (section 28)
 ###
-CFLAGS += -DCC2420_DEF_RFPOWER=23
+CFLAGS += -DCC2420_DEF_RFPOWER=31
 
 ### Send activity
 # Set the flag DUMMY_SEND_ENABLED to allow the sensor to send packets other
@@ -28,9 +28,9 @@ CFLAGS += -DCC2420_DEF_RFPOWER=23
 # DUMMY_PERIOD + [[0, 4095]]
 ###
 CFLAGS += -DDUMMY_SEND_ENABLED
-CFLAGS += -DDUMMY_PERIOD=10000U
+CFLAGS += -DDUMMY_PERIOD=30000U
 
-CFLAGS += -DRANDOM_ENABLED
+#CFLAGS += -DRANDOM_ENABLED
 
 ### Acknowledgement policy
 # To enable acknowledgement policy, set the flag ACKNOWLEDGEMENT_ENABLED.
@@ -40,9 +40,9 @@ CFLAGS += -DRANDOM_ENABLED
 # MAX_ATTEMPT_SEND is the maximum number of sending of the same packet. When
 # this number is reached, the packet will be dropped.
 ###
-CFLAGS += -DACKNOWLEDGEMENT_ENABLED
-CFLAGS += -DMAX_ATTEMPT_SEND=3
-CFLAGS += -DACK_DELAY=1000U
+#CFLAGS += -DACKNOWLEDGEMENT_ENABLED
+#CFLAGS += -DMAX_ATTEMPT_SEND=3
+#CFLAGS += -DACK_DELAY=1000U
 
 ### CC2420 Radio Parameters
 # Define the radio channel
