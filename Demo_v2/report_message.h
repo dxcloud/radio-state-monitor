@@ -11,37 +11,32 @@
 #include "CC2420StateCapture.h"
 
 enum {
-  AM_REPORTMSG = 240,
-  AM_DUMMYMSG = 100,
-  AM_BASE_STATION_ADDR = 1,
-  AM_DUMMY_ADDR = 0
+  UDP_REPORT_PORT = 7060
 };
 
 /**
  * @struct report_message
  * @brief  Format of the packet
  *
- * ---------------------------------------------------
- * | ID | SN |  OD  |  PD  |  LD  |  RD  |  TD  | RS |
- * ---------------------------------------------------
+ * ----------------------------------------------
+ * | SN | ID |  OD  |  PD  |  LD  |  RD  |  TD  |
+ * ----------------------------------------------
  *
- * - description                     - unit - size -
- * ID: identifier of the sending mote    #   16 bits
- * SN: sequence number                   #   16 bits
- * OD: voltage regulator off duration   us   32 bits
- * PD: power down duration              us   32 bits
- * LD: idle duration                    us   32 bits
- * RD: reception duration               us   32 bits
- * TD: transmission duration            us   32 bits
- * RS: RSSI                            dBm    8 bits
+ *     description                     - unit - size -
+ * - SN: sequence number                   #   16 bits
+ * - ID: identifier of the sending mote    #   16 bits
+ * - OD: voltage regulator off duration   us   32 bits
+ * - PD: power down duration              us   32 bits
+ * - LD: idle duration                    us   32 bits
+ * - RD: reception duration               us   32 bits
+ * - TD: transmission duration            us   32 bits
  *
- * packet size: 200 bits <-> 25 bytes
+ * packet size: 182 bits <-> 24 bytes
  */
 typedef nx_struct ReportMsg {
-  nx_uint16_t node_id;
-  nx_uint16_t seq_num;
-  states_t duration;
-  nx_int8_t rssi;
+  nx_uint16_t seqno;
+  nx_uint16_t sender;
+  states_t    duration;  // see CC2420StateCapture.h
 } ReportMsg;
 
 #endif // REPORT_MESSAGE_H
