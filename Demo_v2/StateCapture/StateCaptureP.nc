@@ -34,13 +34,10 @@ implementation {
 /******************************************************************************/
   async command error_t StateCapture.getReport(states_t* states_report)
   {
-    int i;
     atomic {
       updateState(prev_state);
-      for (i = 0; i < NUM_STATES; ++i) {
-        states_report->states[i] = report.states[i];
-        report.states[i] = 0;
-      }
+      memcpy((uint8_t*)states_report, (uint8_t*)&report, sizeof(states_t));
+      memset((void*)&report, 0, sizeof(states_t));
     }
     return SUCCESS;
   }
@@ -83,9 +80,9 @@ implementation {
   void updateState(uint8_t next_state)
   {
     atomic {
-      uint32_t current_counter = call Counter.get();
-      report.states[prev_state] += (current_counter - prev_counter);
-      prev_counter = current_counter;
+      uint32_t cur_counter = call Counter.get();
+      report.states[prev_state] += (cur_counter - prev_counter);
+      prev_counter = cur_counter;
       prev_state = next_state;
     }
   }

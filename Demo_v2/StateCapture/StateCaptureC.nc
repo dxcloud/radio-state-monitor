@@ -6,6 +6,10 @@
  * @brief   
  */
 
+#ifndef CC2420_RADIO_STATE_CAPTURE
+#error "*** RADIO STATE CAPTURE DISABLED ***"
+#endif
+
 configuration StateCaptureC {
   provides interface StateCapture;
 }
