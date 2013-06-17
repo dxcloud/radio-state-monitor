@@ -15,6 +15,7 @@ ReportMsg.java
 *.aux
 *.png
 *.toc
+*.pdf
 
 # archive
 *.tar
