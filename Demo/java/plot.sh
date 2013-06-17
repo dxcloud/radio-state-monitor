@@ -18,11 +18,12 @@ if [ $# -eq 2 ] ; then
 
   grep $nodeid $1 > tmp.dat
 
+  tail -n 20 tmp.dat > tmp1.dat
   sed '1 i\
-  ID Sequence OFF PD IDLE RX TX RSSI Timestamp' tmp.dat > tmp1.dat
+  ID Sequence OFF PD IDLE RX TX RSSI Timestamp' tmp1.dat > tmp.dat
 
   sed -e "s/OUTPUT/${filename}_node_$2\.png/" \
-  -e "s/INPUT/tmp1\.dat/" \
+  -e "s/INPUT/tmp\.dat/" \
   $gnuplottemplate > $filename.gnuplot
 
   ### Plot with gnuplot

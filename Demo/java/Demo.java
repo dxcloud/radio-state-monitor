@@ -64,8 +64,8 @@ public class Demo implements MessageListener {
  * script (drawing time diagram for each node).
  */
 
-//      cmd[2] = msg.get_node_id() + "";
-//      Runtime.getRuntime().exec(cmd);
+      cmd[2] = msg.get_node_id() + "";
+      Runtime.getRuntime().exec(cmd);
 
     } catch (Exception e) {
       e.printStackTrace();
