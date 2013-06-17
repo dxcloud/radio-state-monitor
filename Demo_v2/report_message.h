@@ -11,7 +11,8 @@
 #include "CC2420StateCapture.h"
 
 enum {
-  UDP_REPORT_PORT = 7060
+  UDP_REPORT_PORT = 7060,
+  AM_REPORTMSG    = 240
 };
 
 /**
@@ -34,9 +35,11 @@ enum {
  * packet size: 182 bits <-> 24 bytes
  */
 typedef nx_struct ReportMsg {
-  nx_uint16_t seqno;
-  nx_uint16_t sender;
-  states_t    duration;  // see CC2420StateCapture.h
+  nx_uint16_t  seqno;  /** Sequence number */
+  nx_uint16_t  sender;
+  states_t     duration;  /** @see CC2420StateCapture.h */
+  nx_uint16_t  voltage;
+  nx_uint16_t  sensor;
 } ReportMsg;
 
 #endif // REPORT_MESSAGE_H
