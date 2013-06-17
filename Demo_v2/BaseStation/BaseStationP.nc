@@ -71,14 +71,13 @@ implementation
 #endif
 
 #ifdef SERIAL_COMM_ENABLED
-//  if (sizeof(ReportMsg) == len) {
-    message_t packet;
-    ReportMsg* msg = (ReportMsg*)(call SerialPacket.getPayload(&packet,
+//    if (sizeof(ReportMsg) == len) {
+      message_t packet;
+      ReportMsg* msg = (ReportMsg*)(call SerialPacket.getPayload(&packet,
                                                          sizeof(ReportMsg)));
-    uint16_t *cur = data;
-    msg->seqno = cur[0] << 8 | cur[1];
-    call SerialSend.send(AM_BROADCAST_ADDR, &packet, len);
-//  }
+      memcpy((void*) msg,(void* ) data, sizeof(ReportMsg));
+      call SerialSend.send(AM_BROADCAST_ADDR, &packet, len);
+//    }
 #endif
   }
 
