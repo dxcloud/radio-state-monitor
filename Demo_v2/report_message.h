@@ -2,7 +2,10 @@
  * @file    Demo/report_message.h
  * @author  Chengwu Huang
  * @date    2013-05-16
- * @version 1.1
+ * @version 1.2
+ * @brief   Define the report packet format
+ * @details Changelog:
+ *          - 2013-06-17: fields `voltage' and `sensor' added
  */
 
 #ifndef REPORT_MESSAGE_H
@@ -11,35 +14,21 @@
 #include "CC2420StateCapture.h"
 
 enum {
-  UDP_REPORT_PORT = 7060,
-  AM_REPORTMSG    = 240
+  AM_REPORTMSG    = 240  // Active Message ID for PC-mote communication
 };
 
 /**
  * @struct report_message
  * @brief  Format of the packet
  *
- * ----------------------------------------------
- * | SN | ID |  OD  |  PD  |  LD  |  RD  |  TD  |
- * ----------------------------------------------
- *
- *     description                     - unit - size -
- * - SN: sequence number                   #   16 bits
- * - ID: identifier of the sending mote    #   16 bits
- * - OD: voltage regulator off duration   us   32 bits
- * - PD: power down duration              us   32 bits
- * - LD: idle duration                    us   32 bits
- * - RD: reception duration               us   32 bits
- * - TD: transmission duration            us   32 bits
- *
- * packet size: 182 bits <-> 24 bytes
+ *         packet size: 224 bits <-> 28 bytes
  */
 typedef nx_struct ReportMsg {
-  nx_uint16_t  seqno;  /** Sequence number */
-  nx_uint16_t  sender;
+  nx_uint16_t  seqno;     /** Sequence number */
+  nx_uint16_t  sender;    /** Sender Identifier */
   states_t     duration;  /** @see CC2420StateCapture.h */
-  nx_uint16_t  voltage;
-  nx_uint16_t  sensor;
+  nx_uint16_t  voltage;   /** Battery voltage */
+  nx_uint16_t  sensor;    /** Other sensor (e.g. temperature) */
 } ReportMsg;
 
 #endif // REPORT_MESSAGE_H
