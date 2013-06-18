@@ -5,19 +5,21 @@
 COMPONENT=SendingMoteC
 
 ### Destination UDP port
+### Default port is 7060
 CFLAGS   += -DAPP_PORT=7060
 
-### Report interval
-CFLAGS   += -DAPP_PERIOD=2000UL
+### Report interval in milliseconds
+CFLAGS   += -DAPP_PERIOD=6000UL
 
-CFLAGS   += -DLED_ENABLED
+### Enable blinking LED
+#CFLAGS   += -DLED_ENABLED
 
-### Enable rando
+### Enable random number generation
 ### If this flag is set, APP_PERIOD will be automatically disabled
-### RANDOM_MAX and RANDOM_MIN define the interval of random value
-CFLAGS   += -DRANDOM_ENABLED \
-            -DRANDOM_MAX=30000UL \
-            -DRANDOM_MIN=10000UL
+### The random number is between RANDOM_MIN and RANDOM_MAX
+#CFLAGS   += -DRANDOM_ENABLED \
+#            -DRANDOM_MAX=30000UL \
+#            -DRANDOM_MIN=10000UL
 
 ### Radio settings
 CFLAGS   += -DCC2420_DEF_CHANNEL=16
@@ -34,17 +36,18 @@ CFLAGS   += -DLOW_POWER_LISTENING \
 
 ### Static address
 CFLAGS   += -DIN6_PREFIX=\"fec0::\"
-CFLAGS   += -DREPORT_DEST=\"fec0::5\"
+CFLAGS   += -DREPORT_DEST=\"fec0::1\"
 CFLAGS   += -DBLIP_DERIVE_SHORTADDRS
 
 ### Enalbe UDP shell
-CFLAGS   += -DUDP_SHELL_ENABLED
+#CFLAGS   += -DUDP_SHELL_ENABLED
 
 ### Enable RPL routing protocol
 CFLAGS   += -DRPL_ROUTING \
             -DRPL_STORING_MODE \
             -I$(TOSDIR)/lib/net/rpl
 
+### Directories to be included
 INCLUDES += -I.. \
             -I../StateCapture \
             -I../ReportCmd
@@ -54,25 +57,15 @@ CFLAGS   += $(INCLUDES)
 ### Enable Voltage Sensor
 CFLAGS   += -DVOLTAGE_SENSOR
 
-################################################################################
 ### Enable only ONE sensor at a time:
 ### - Temperature
 ### - Humidity
 ### - Visible Light
 ### - All Light
-################################################################################
-### Enable Temperature Sensor
-#CFLAGS   += -DTEMPERATURE_SENSOR
-
-### Enable Humidity Sensor
+CFLAGS   += -DTEMPERATURE_SENSOR
 #CFLAGS   += -DHUMIDITY_SENSOR
-
-### Enable Visible Light Sensor
-CFLAGS   += -DVISIBLE_LIGHT_SENSOR
-
-### Enable All Light Sensor
+#CFLAGS   += -DVISIBLE_LIGHT_SENSOR
 #CFLAGS   += -DALL_LIGHT_SENSOR
-################################################################################
 
 ### Enable printf
 CFLAGS   += -DPRINTFUART_ENABLED \

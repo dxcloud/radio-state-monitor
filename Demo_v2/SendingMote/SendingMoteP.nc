@@ -9,8 +9,8 @@
 #include "report_message.h"
 #include <lib6lowpan/ip.h>
 
-#ifndef REPORT_INTERVAL
-#define REPORT_INTERVAL 1000  // Default report packet period
+#ifndef APP_PERIOD
+#define APP_PERIOD 60000UL  // Default report packet period
 #endif
 
 #ifndef APP_PORT
@@ -25,6 +25,10 @@
 #  ifndef RANDOM_MIN
 #    define RANDOM_MIN 60000UL  // Default min random value
 #  endif
+#endif
+
+#if (TEMPERATURE_SENSOR || HUMIDITY_SENSOR || VISIBLE_LIGHT_SENSOR || ALL_LIGHT_SENSOR)
+#define SENSOR_ENABLED
 #endif
 
 module SendingMoteP
@@ -64,23 +68,32 @@ module SendingMoteP
 }
 implementation
 {
-  ReportMsg report;
+  ReportMsg report;  // report packet format
   struct sockaddr_in6 dest;
+
+#if VOLTAGE_SENSOR
+  bool voltage_read = FALSE;
+#endif
+
+#ifdef SENSOR_ENABLED
+  bool sensor_read = FALSE;
+#endif
 
   /****************************************************************************/
   /* Function prototype                                                       */
   /****************************************************************************/
 
+  /* Task for sending report packets */
   task void send_task();
 
-  /** @brief Blink LED 2 for a failed action */
+  /* Blink LED 2 for a failed action */
   inline void fail_blink();
 
-  /** @brief Blink LED 1 for a successful action */
+  /* Blink LED 1 for a successful action */
   inline void success_blink();
 
 #if RANDOM_ENABLED
-  /** @brief Get a random number between RANDOM_MIN and RANDOM_MAX */
+  /* Get a random number between RANDOM_MIN and RANDOM_MAX */
   inline uint32_t get_rand();
 #endif
 
@@ -93,7 +106,7 @@ implementation
   {
     call RadioControl.start();
     inet_pton6(REPORT_DEST, &dest.sin6_addr);
-    dest.sin6_port = htons(UDP_REPORT_PORT);
+    dest.sin6_port = htons(APP_PORT);  // destination port
     report.sender = TOS_NODE_ID;
   }
 
@@ -105,7 +118,7 @@ implementation
 #if RANDOM_ENABLED
       call ReportTimer.startOneShot(get_rand());
 #else
-      call ReportTimer.startPeriodic(REPORT_INTERVAL);
+      call ReportTimer.startPeriodic(APP_PERIOD);
 #endif
     }
     else {
@@ -154,7 +167,7 @@ implementation
                              uint16_t len,
                              struct ip6_metadata *meta)
   {
-
+    // nothing to do
   }
 
 #if VOLTAGE_SENSOR
@@ -162,6 +175,7 @@ implementation
   event void Voltage.readDone(error_t err, uint16_t data)
   {
     report.voltage = data;
+    voltage_read = TRUE;
   }
 #endif
 
@@ -170,6 +184,7 @@ implementation
   event void Temperature.readDone(error_t err, uint16_t data)
   {
     report.sensor = data;
+    sensor_read = TRUE;
   }
 #endif
 
@@ -178,20 +193,25 @@ implementation
   event void Humidity.readDone(error_t err, uint16_t data)
   {
     report.sensor = data;
+    sensor_read = TRUE;
   }
 #endif
 
 #if VISIBLE_LIGHT_SENSOR
+  /* VisLight.readDone ********************************************************/
   event void VisLight.readDone(error_t err, uint16_t data)
   {
     report.sensor = data;
+    sensor_read = TRUE;
   }
 #endif
 
 #if ALL_LIGHT_SENSOR
+  /* AllLight.readDone ********************************************************/
   event void AllLight.readDone(error_t err, uint16_t data)
   {
     report.sensor = data;
+    sensor_read = TRUE;
   }
 #endif
 
@@ -202,15 +222,40 @@ implementation
   /* send_task ****************************************************************/
   task void send_task()
   {
+#if VOLTAGE_SENSOR
+    if (FALSE == voltage_read) {
+      post send_task();
+      return;
+    }
+#endif
+
+#ifdef SENSOR_ENABLED
+    if (FALSE == sensor_read) {
+      post send_task();
+      return;
+    }
+#endif
+
     if (SUCCESS == call Report.sendto(&dest, &report, sizeof(report))) {
       success_blink();
+
+#if VOLTAGE_SENSOR
+      voltage_read = FALSE;
+#endif
+
+#ifdef SENSOR_ENABLED
+      sensor_read = FALSE;
+#endif
+
     }
     else {
       fail_blink();
     }
+
 #if RANDOM_ENABLED
     call ReportTimer.startOneShot(get_rand());
 #endif
+
   }
 
   /* succes_blink *************************************************************/
@@ -233,7 +278,7 @@ implementation
   /* get_rand *****************************************************************/
   uint32_t get_rand()
   {
-    return (call Random.rand32() % RANDOM_MAX) + RANDOM_MIN;
+    return (call Random.rand32() % (RANDOM_MAX - RANDOM_MIN)) + RANDOM_MIN;
   }
 #endif
 

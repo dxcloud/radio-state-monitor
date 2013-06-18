@@ -1,8 +1,11 @@
 /**
- * @file Demo_v2/SendingMote/SendingMoteC.nc
- * @date 2013-05-27
- * @auther Chengwu Huang <chengwhuang@gmail.com>
+ * @file    Demo_v2/SendingMote/SendingMoteC.nc
+ * @date    2013-05-27
+ * @auther  Chengwu Huang <chengwhuang@gmail.com>
  * @version 2.1
+ * @details Changelog:
+ *          - 2013-06-15: Random period reporting enabled
+ *          - 2013-06-17: Sensing components added
  */
 
 #include "report_message.h"
@@ -55,11 +58,6 @@ implementation
 //  components ReportCmdC;
 #endif
 
-#ifdef PRINTFUART_ENABLED
-//  components SerialPrintfC;
-  components PrintfC, SerialStartC;
-#endif
-
 #if VOLTAGE_SENSOR
   components new DemoSensorC() as Voltage;
   App.Voltage -> Voltage;
@@ -83,6 +81,11 @@ implementation
 #if ALL_LIGHT_SENSOR
   components new HamamatsuS10871TsrC() as AllLightSensor;
   App.AllLight -> AllLightSensor;
+#endif
+
+#ifdef PRINTFUART_ENABLED
+//  components SerialPrintfC;
+  components PrintfC, SerialStartC;
 #endif
 
 }
