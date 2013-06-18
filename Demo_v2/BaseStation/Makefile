@@ -1,5 +1,9 @@
 COMPONENT=BaseStationC
 
+CFLAGS   += -DAPP_PORT=7060
+
+CLAGS    += -DLED_ENABLED
+
 CFLAGS   += -DCC2420_DEF_CHANNEL=16
 CFLAGS   += -DCC2420_DEF_RFPOWER=31
 
@@ -11,13 +15,11 @@ CFLAGS   += -DRPL_ROUTING \
             -DRPL_STORING_MODE \
             -I$(TOSDIR)/lib/net/rpl
 
-INCLUDES += -I.. \
+INCLUDES += -I..
 
 CFLAGS   += $(INCLUDES)
 
-#CFLAGS   += -DPRINTUART_ENABLED \
-#            -DNEW_PRINTF_SEMANTICS
-
+### Enable serial communication between BaseStation and PC
 CFLAGS += -DSERIAL_COMM_ENABLED
 
 include $(MAKERULES)

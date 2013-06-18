@@ -27,7 +27,7 @@ implementation
   components RPLRoutingC;
 #endif
 
-#ifdef SERIAL_COMM_ENABLED
+#if SERIAL_COMM_ENABLED
   components new SerialAMSenderC(AM_REPORTMSG) as SerialSender;
   App.SerialSend -> SerialSender;
 

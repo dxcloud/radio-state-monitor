@@ -4,6 +4,10 @@
 
 #include <report_message.h>
 
+#ifndef APP_PORT
+#define APP_PORT 7060
+#endif
+
 module BaseStationP
 {
   uses {
@@ -13,7 +17,7 @@ module BaseStationP
     interface SplitControl as RadioControl;
     interface UDP as Report;
 
-#ifdef SERIAL_COMM_ENABLED
+#if SERIAL_COMM_ENABLED
     interface SplitControl as SerialControl;
     interface AMSend as SerialSend;
     interface Packet as SerialPacket;
@@ -31,8 +35,8 @@ implementation
   event void Boot.booted()
   {
     call RadioControl.start();
-    call Report.bind(UDP_REPORT_PORT);
-#ifdef SERIAL_COMM_ENABLED
+    call Report.bind(APP_PORT);  // listen port APP_PORT
+#if SERIAL_COMM_ENABLED
     call SerialControl.start();
 #endif
   }
@@ -60,28 +64,19 @@ implementation
                              uint16_t len,
                              struct ip6_metadata *meta)
   {
-#ifdef PRINTFUART_ENABLED
-    int i;
-    uint8_t *cur = data;
-    printf("Report recv [%i]: ", len);
-    for (i = 0; i < len; i++) {
-      printf("%02x ", cur[i]);
-    }
-    printf("\n");
-#endif
 
-#ifdef SERIAL_COMM_ENABLED
-//    if (sizeof(ReportMsg) == len) {
+#if SERIAL_COMM_ENABLED
+    if (sizeof(ReportMsg) == len) {
       message_t packet;
       ReportMsg* msg = (ReportMsg*)(call SerialPacket.getPayload(&packet,
                                                          sizeof(ReportMsg)));
       memcpy((void*) msg,(void* ) data, sizeof(ReportMsg));
       call SerialSend.send(AM_BROADCAST_ADDR, &packet, len);
-//    }
+    }
 #endif
   }
 
-#ifdef SERIAL_COMM_ENABLED
+#if SERIAL_COMM_ENABLED
   /****************************************************************************/
   /* Event SerialControl (SplitControl) started                               */
   /****************************************************************************/
@@ -121,13 +116,17 @@ implementation
   /* Toggle LED 1 to signal a successful event */
   void success_blink()
   {
+#if LED_ENABLED
     call Leds.led1Toggle();
+#endif
   }
 
   /* Toggle LED 2 to signal a failure */
   void fail_blink()
   {
+#if LED_ENABLED
     call Leds.led2Toggle();
+#endif
   }
 
 }
