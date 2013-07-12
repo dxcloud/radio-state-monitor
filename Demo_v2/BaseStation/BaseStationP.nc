@@ -43,17 +43,15 @@ implementation
 
   event void RadioControl.startDone(error_t err)
   {
-    if (SUCCESS == err) {
-      call Leds.led0On();
-    }
-    else {
+    if (SUCCESS != err) {
+      fail_blink();
       call RadioControl.start();
-    }
+    }  // try again
   }
 
   event void RadioControl.stopDone(error_t err)
   {
-    call RadioControl.stop();
+
   }
 
   /****************************************************************************/
