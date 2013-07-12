@@ -7,36 +7,39 @@ Directory contents
 * README.md
 * Makefile
 * Demo.java
-* plot.sh (added 2013-05-28)
-* diagram.gnuplot (added 2013-05-28)
 
 Description
 --------------------------------------------------------------------------------
 ### General description
-This application is based on PrintfClient. A BaseStation must be connected to
-the PC. Each time a report packet is received the application displays its value
-on the screen. It generates also an output file.
+This application is a revision of the previous Demo application.
+A BaseStation must be connected to the PC.
+Each time a report packet is received the application will display the packet
+value on the screen. It generates also an output file.
+The output format is the same as the report packet with a timestamp at the
+end of the packet.
 
 A Makefile is provided to simplify the compilation.
 
 ### Compilation
-Make the environment variable **CLASSPATH** set, it should at least contain the
-value *$(TOSROOT)/support/sdk/java/tinyos.jar*.
-Type `make` for compilation, 3 files should be generated: *ReportMsg.java*,
-*ReportMsg.class* and *Demo.class*.
+The environment variable **CLASSPATH** must at least contain the value
+*$(TOSROOT)/support/sdk/java/tinyos.jar*.
+For a simple compilation, type `make`.
+3 files should be generated:
+* *ReportMsg.java*
+* *ReportMsg.class*
+* *Demo.class*.
 
 ### Run
 Run this application the same way as for PrintfClient. If the source is not
-specified, this application will use */dev/ttyUSB0* as default source.
+specified, */dev/ttyUSB0* will be used as the default source.
 
 `java Demo [-comm <source>]`
 
-An output file will be generate by the application with *.dat* extension. This
+An output file will be generate by this application with *.dat* extension. This
 file contains the some values as printed on the terminal.
 
-### Modification
-The java application is able to call *plot.sh* script, this script allows to
-draw a time diagram.
+The application is now able to check the current date of the system. A new
+output file will be generated every day after 00:00:00.
 
 Author
 --------------------------------------------------------------------------------
