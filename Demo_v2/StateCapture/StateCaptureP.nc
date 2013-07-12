@@ -20,14 +20,14 @@ implementation {
 /******************************************************************************/
 /* Global variables                                                           */
 /******************************************************************************/
-  uint8_t prev_state = 0;     /* Previous state */
-  uint32_t prev_counter = 0;  /* Previous value of the counter */
-  states_t report;            /* Temporary radio report */
+  uint8_t prev_state = 0;     // Previous state
+  uint32_t prev_counter = 0;  // Previous value of the counter
+  states_t report;            // Local radio report
 
 /******************************************************************************/
 /* Function Prototypes                                                        */
 /******************************************************************************/
-  void updateState(uint8_t new_state);
+  inline void updateState(uint8_t new_state);
 
 /******************************************************************************/
 /* Command getReport                                                          */
@@ -36,8 +36,8 @@ implementation {
   {
     atomic {
       updateState(prev_state);
-      memcpy((uint8_t*)states_report, (uint8_t*)&report, sizeof(states_t));
-      memset((void*)&report, 0, sizeof(states_t));
+      memcpy((uint8_t*) states_report, (uint8_t*) &report, sizeof(states_t));
+      memset((void*) &report, 0, sizeof(states_t));
     }
     return SUCCESS;
   }
@@ -82,8 +82,8 @@ implementation {
     atomic {
       uint32_t cur_counter = call Counter.get();
       report.states[prev_state] += (cur_counter - prev_counter);
-      prev_counter = cur_counter;
       prev_state = next_state;
+      prev_counter = cur_counter;
     }
   }
 }

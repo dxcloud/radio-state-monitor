@@ -7,7 +7,8 @@
  */
 
 #ifndef CC2420_RADIO_STATE_CAPTURE
-#error "*** RADIO STATE CAPTURE DISABLED ***"
+# error \
+"*** RADIO STATE CAPTURE DISABLED: component `StateCaptureC' cannot be used ***"
 #endif
 
 configuration StateCaptureC {
