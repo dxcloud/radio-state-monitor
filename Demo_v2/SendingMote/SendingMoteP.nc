@@ -3,7 +3,8 @@
  * @date    2013-06-17
  * @version 2.1
  * @author  Chengwu Huang <chengwhuang@gmail.com>
- * @brief   
+ * @brief   This application sends a UDP report periodically, it sends also
+ *          (periodically or randomly) dummy packets to simulate a working node
  */
 
 #include "report_message.h"
@@ -17,13 +18,19 @@
 #define APP_PORT 7060
 #endif
 
-#if RANDOM_ENABLED
-#  undef APP_PERIOD  // disable periodic report
-#  ifndef RANDOM_MAX
+#if DUMMY_SEND_ENABLED
+#  if RANDOM_ENABLED
+#    undef DUMMY_PERIOD  // disable periodic dummy sending
+#    ifndef RANDOM_MAX
 #    define RANDOM_MAX 600000UL // Default max random value
-#  endif
-#  ifndef RANDOM_MIN
+#    endif
+#    ifndef RANDOM_MIN
 #    define RANDOM_MIN 60000UL  // Default min random value
+#    endif
+#  else
+#    ifndef DUMMY_PERIOD
+#    define DUMMY_PERIOD 60000UL
+#    endif
 #  endif
 #endif
 
@@ -35,15 +42,23 @@ module SendingMoteP
 {
   uses {
     interface Boot;
+#if LED_ENABLED
     interface Leds;
+#endif
     interface Timer<TMilli> as ReportTimer;
     interface StateCapture;
     interface SplitControl as RadioControl;
     interface UDP as Report;
 
-#if RANDOM_ENABLED
+#if DUMMY_SEND_ENABLED
+    interface UDP as Dummy;
+    interface Timer<TMilli> as DummyTimer;
+
+#  if RANDOM_ENABLED
     interface Random;
+#  endif
 #endif
+
 
 #if VOLTAGE_SENSOR
     interface Read<uint16_t> as Voltage;
@@ -71,8 +86,13 @@ implementation
   ReportMsg report;  // report packet format
   struct sockaddr_in6 dest;
 
+#if DUMMY_SEND_ENABLED
+  ReportMsg dummy_packet;  // empty dummy packet
+  struct sockaddr_in6 dummy_dest;
+#endif
+
 #if VOLTAGE_SENSOR
-  bool voltage_read = FALSE;
+  bool voltage_read = FALSE;  // TRUE if 'Voltage.readDone' triggered
 #endif
 
 #ifdef SENSOR_ENABLED
@@ -108,6 +128,9 @@ implementation
     inet_pton6(REPORT_DEST, &dest.sin6_addr);
     dest.sin6_port = htons(APP_PORT);  // destination port
     report.sender = TOS_NODE_ID;
+#if DUMMY_SEND_ENABLED
+    inet_pton6(DUMMY_DEST, &dummy_dest.sin6_addr);
+#endif
   }
 
   /* RadioControl.startDone (SplitControl) ************************************/
@@ -115,10 +138,14 @@ implementation
   {
     if (SUCCESS == err) {
       success_blink();
-#if RANDOM_ENABLED
-      call ReportTimer.startOneShot(get_rand());
-#else
       call ReportTimer.startPeriodic(APP_PERIOD);
+
+#if DUMMY_SEND_ENABLED
+#  if RANDOM_ENABLED
+      call DummyTimer.startOneShot(get_rand());
+#  else  // random dummy packets sending
+      call DummyTimer.startPeriodic(DUMMY_PERIOD);
+#  endif  // periodic dummy packets sending
 #endif
     }
     else {
@@ -169,6 +196,24 @@ implementation
   {
     // nothing to do
   }
+
+#if DUMMY_SEND_ENABLED
+  /* DummyTimer.fired (Timer) *************************************************/
+  event void DummyTimer.fired() {
+    call Dummy.sendto(&dummy_dest, &dummy_packet, sizeof(dummy_packet));
+#if RANDOM_ENABLED
+    call DummyTimer.startOneShot(get_rand());
+#endif
+  }
+
+  /* Dummy.recvfrom (UDP) *****************************************************/
+  event void Dummy.recvfrom(struct sockaddr_in6 *from,
+                             void *data,
+                             uint16_t len,
+                             struct ip6_metadata *meta)
+  {
+  }
+#endif
 
 #if VOLTAGE_SENSOR
   /* Voltage.readDone (Read) **************************************************/
@@ -251,11 +296,6 @@ implementation
     else {
       fail_blink();
     }
-
-#if RANDOM_ENABLED
-    call ReportTimer.startOneShot(get_rand());
-#endif
-
   }
 
   /* succes_blink *************************************************************/
@@ -281,6 +321,5 @@ implementation
     return (call Random.rand32() % (RANDOM_MAX - RANDOM_MIN)) + RANDOM_MIN;
   }
 #endif
-
 }
 

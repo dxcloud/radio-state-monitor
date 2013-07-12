@@ -2,10 +2,11 @@
  * @file    Demo_v2/SendingMote/SendingMoteC.nc
  * @date    2013-05-27
  * @auther  Chengwu Huang <chengwhuang@gmail.com>
- * @version 2.1
+ * @version 2.2
  * @details Changelog:
  *          - 2013-06-15: Random period reporting enabled
  *          - 2013-06-17: Sensing components added
+ *          - 2013-06-20: Sending dummy packets enabled
  */
 
 #include "report_message.h"
@@ -24,8 +25,10 @@ implementation
   components SendingMoteP as App;
   App.Boot -> MainC;
 
+#if LED_ENABLED
   components LedsC;
   App.Leds -> LedsC;
+#endif
 
   components new TimerMilliC() as ReportTimer;
   App.ReportTimer -> ReportTimer;
@@ -38,6 +41,14 @@ implementation
 
   components IPStackC;
   App.RadioControl -> IPStackC;
+
+#if DUMMY_SEND_ENABLED
+  components new UdpSocketC() as Dummy;
+  App.Dummy -> Dummy;
+
+  components new TimerMilliC() as DummyTimer;
+  App.DummyTimer -> DummyTimer;
+#endif
 
 #if RANDOM_ENABLED
   components RandomC;

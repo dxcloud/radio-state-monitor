@@ -9,17 +9,25 @@ COMPONENT=SendingMoteC
 CFLAGS   += -DAPP_PORT=7060
 
 ### Report interval in milliseconds
-CFLAGS   += -DAPP_PERIOD=6000UL
+### 10 minutes: 600000
+### 15 minutes: 900000
+CFLAGS   += -DAPP_PERIOD=900000UL
 
 ### Enable blinking LED
 #CFLAGS   += -DLED_ENABLED
 
+### Dummy sending parameters
+### Loopback address '::1'
+CFLAGS   += -DDUMMY_SEND_ENABLED
+CFLAGS   += -DDUMMY_PERIOD=600000UL
+CFLAGS   += -DDUMMY_DEST=\"::1\"
+
 ### Enable random number generation
-### If this flag is set, APP_PERIOD will be automatically disabled
+### If this flag is set, DUMMY_PERIOD will be automatically disabled
 ### The random number is between RANDOM_MIN and RANDOM_MAX
-#CFLAGS   += -DRANDOM_ENABLED \
-#            -DRANDOM_MAX=30000UL \
-#            -DRANDOM_MIN=10000UL
+CFLAGS   += -DRANDOM_ENABLED \
+            -DRANDOM_MAX=600000UL \
+            -DRANDOM_MIN=60000UL
 
 ### Radio settings
 CFLAGS   += -DCC2420_DEF_CHANNEL=16
@@ -36,7 +44,7 @@ CFLAGS   += -DLOW_POWER_LISTENING \
 
 ### Static address
 CFLAGS   += -DIN6_PREFIX=\"fec0::\"
-CFLAGS   += -DREPORT_DEST=\"fec0::1\"
+CFLAGS   += -DREPORT_DEST=\"fec0::B5\"
 CFLAGS   += -DBLIP_DERIVE_SHORTADDRS
 
 ### Enalbe UDP shell
