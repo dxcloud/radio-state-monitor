@@ -1,42 +1,20 @@
 /**
  * @file    cc2420/CC2420StateCapture.h
- * @author  Chengwu Huang
+ * @author  Chengwu Huang <chengwhuang@gmail.com>
  * @date    2013-05-02
  * @version 1.1
- * @brief   List of available CC2420 radio states
- *
- * @details Power Supply
- *           _______________________________________________
- *          | Power Consumption | Min. | Typ. | Max. | Unit |
- *          |-------------------|------|------|------|------|
- *          | OFF               |      | 0.02 | 1    | uA   |
- *          |-------------------|------|------|------|------|
- *          | PD                |      | 20   |      | uA   |
- *          |-------------------|------|------|------|------|
- *          | IDLE              |      | 426  |      | uA   |
- *          |-------------------|------|------|------|------|
- *          | Rx                |      | 18.8 |      | mA   |
- *          |-------------------|------|------|------|------|
- *          | Tx:               |      |      |      |      |
- *          | P = -25 dBm       |      | 8.5  |      | mA   |
- *          | P = -15 dBm       |      | 9.9  |      | mA   |
- *          | P = -10 dBm       |      | 11   |      | mA   |
- *          | P = -5  dBm       |      | 14   |      | mA   |
- *          | P =  0  dBm       |      | 17.4 |      | mA   |
- *          \___________________|______|______|______|______|
- *
- *          see CC2420 datasheet section 5 'Operating Condition'
+ * @brief   This file contains a list of available radio states for CC2420
  */
 
 #ifndef CC2420_STATE_CAPTURE_H
 #define CC2420_STATE_CAPTURE_H
 
 enum {
-  STATE_OFF,      /** Voltage regulator off */
-  STATE_PD,       /** Voltage regulator on */
-  STATE_IDLE,     /** Including crytal oscillator and voltage regulator */
-  STATE_RX,       /** Reception */
-  STATE_TX        /** Transmission */
+  STATE_OFF = 0 ,  /** Voltage regulator off */
+  STATE_PD,        /** Voltage regulator on */
+  STATE_IDLE,      /** Including crytal oscillator and voltage regulator */
+  STATE_RX,        /** Reception */
+  STATE_TX         /** Transmission */
 };
 
 enum {
