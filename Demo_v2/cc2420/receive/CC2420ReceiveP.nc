@@ -258,11 +258,6 @@ implementation {
 
     call CSN.clr();
     status = call SNOP.strobe();
-
-//#ifdef CC2420_RADIO_STATE_CAPTURE
-//    signal StateCapture.captured(CC2420_SNOP);
-//#endif
-
     call CSN.set();
 
     atomic decLoopCount ++;
@@ -300,11 +295,6 @@ implementation {
     cc2420_status_t status;
     call CSN.clr();
     status = call SNOP.strobe();
-
-//#ifdef CC2420_RADIO_STATE_CAPTURE
-//    signal StateCapture.captured(CC2420_SNOP);
-//#endif
-
     call CSN.set();
 
     if(status & CC2420_STATUS_ENC_BUSY){
@@ -499,11 +489,6 @@ implementation {
 
 	  call CSN.clr();
 	  atomic call SRXDEC.strobe();
-
-//#ifdef CC2420_RADIO_STATE_CAPTURE
-//    signal StateCapture.captured(CC2420_SRXDEC);
-//#endif
-
 	  call CSN.set();
 
 	  atomic decLoopCount = 0;
@@ -623,7 +608,6 @@ implementation {
           call SACK.strobe();
 
 #ifdef CC2420_RADIO_STATE_CAPTURE
-//          signal StateCapture.captured(CC2420_SACK);
           signal StateCapture.captured(STATE_TX);
 #endif
 
@@ -770,11 +754,6 @@ implementation {
     call CSN.clr();
     call SFLUSHRX.strobe();
     call SFLUSHRX.strobe();
-
-//#ifdef CC2420_RADIO_STATE_CAPTURE
-//    signal StateCapture.captured(CC2420_SFLUSHRX);
-//#endif
-
     call CSN.set();
     call SpiResource.release();
     waitForNextPacket();

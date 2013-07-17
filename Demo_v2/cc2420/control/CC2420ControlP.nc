@@ -249,7 +249,6 @@ implementation {
       call SXOSCON.strobe();
 
 #ifdef CC2420_RADIO_STATE_CAPTURE
-//      signal StateCapture.captured(CC2420_SXOSCON);
       signal StateCapture.captured(STATE_IDLE);
 #endif
       
@@ -282,7 +281,6 @@ implementation {
       call SXOSCOFF.strobe();
 
 #ifdef CC2420_RADIO_STATE_CAPTURE
-//      signal StateCapture.captured(CC2420_SXOSCOFF);
       signal StateCapture.captured(STATE_PD);
 #endif
 
@@ -298,7 +296,6 @@ implementation {
       call SRXON.strobe();
 
 #ifdef CC2420_RADIO_STATE_CAPTURE
-//      signal StateCapture.captured(CC2420_SRXON);
       signal StateCapture.captured(STATE_RX);
 #endif
 
@@ -314,7 +311,6 @@ implementation {
       call SRFOFF.strobe();
 
 #ifdef CC2420_RADIO_STATE_CAPTURE
-//      signal StateCapture.captured(CC2420_SRFOFF);
       signal StateCapture.captured(STATE_IDLE);
 #endif
 
@@ -438,7 +434,6 @@ implementation {
     call SRFOFF.strobe();
 
 #ifdef CC2420_RADIO_STATE_CAPTURE
-//    signal StateCapture.captured(CC2420_SRFOFF);
     signal StateCapture.captured(STATE_IDLE);
 #endif
 
@@ -450,7 +445,6 @@ implementation {
     call SRXON.strobe();
 
 #ifdef CC2420_RADIO_STATE_CAPTURE
-//    signal StateCapture.captured(CC2420_SRXON);
     signal StateCapture.captured(STATE_RX);
 #endif
 
@@ -597,10 +591,5 @@ implementation {
   }
 
   default event void ReadRssi.readDone(error_t error, uint16_t data) {
-  }
- 
-//#ifdef CC2420_RADIO_STATE_CAPTURE
-//  default async event void StateCapture.captured(uint8_t val) { }
-//#endif
- 
+  } 
 }

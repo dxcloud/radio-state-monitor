@@ -437,10 +437,6 @@ implementation {
     case S_CANCEL:
       call CSN.clr();
       call SFLUSHTX.strobe();
-
-//#ifdef CC2420_RADIO_STATE_CAPTURE
-//      signal StateCapture.captured(CC2420_SFLUSHTX);
-//#endif
  
      call CSN.set();
       releaseSpiResource();
@@ -450,7 +446,6 @@ implementation {
       signal Send.sendDone( m_msg, ECANCEL );
 
 #ifdef CC2420_RADIO_STATE_CAPTURE
-//      signal StateCapture.captured(CC2420_TXEND);
       signal StateCapture.captured(STATE_RX);
 #endif
 
@@ -476,10 +471,6 @@ implementation {
         call CSN.clr();
         call SFLUSHTX.strobe();
 
-//#ifdef CC2420_RADIO_STATE_CAPTURE
-//      signal StateCapture.captured(CC2420_SFLUSHTX);
-//#endif
-
         call CSN.set();
       }
       releaseSpiResource();
@@ -487,7 +478,6 @@ implementation {
       signal Send.sendDone( m_msg, ECANCEL );
 
 #ifdef CC2420_RADIO_STATE_CAPTURE
-//      signal StateCapture.captured(CC2420_TXEND);
       signal StateCapture.captured(STATE_RX);
 #endif
       
@@ -552,10 +542,6 @@ implementation {
         // We didn't receive an SFD interrupt within CC2420_ABORT_PERIOD
         // jiffies. Assume something is wrong.
         call SFLUSHTX.strobe();
-
-//#ifdef CC2420_RADIO_STATE_CAPTURE
-//      signal StateCapture.captured(CC2420_SFLUSHTX);
-//#endif
 
         call CaptureSFD.captureRisingEdge();
         releaseSpiResource();
@@ -789,17 +775,13 @@ implementation {
       if (m_state == S_CANCEL) {
         call SFLUSHTX.strobe();
 
-//#ifdef CC2420_RADIO_STATE_CAPTURE
-//      signal StateCapture.captured(CC2420_SFLUSHTX);
-//#endif
-
         releaseSpiResource();
         call CSN.set();
         m_state = S_STARTED;
         signal Send.sendDone( m_msg, ECANCEL );
 
 #ifdef CC2420_RADIO_STATE_CAPTURE
-      signal StateCapture.captured(0x0F);
+      signal StateCapture.captured(STATE_RX);
 #endif
 
         return;
@@ -813,26 +795,12 @@ implementation {
       call CSN.clr();
 
 #ifdef CC2420_RADIO_STATE_CAPTURE
-      if (m_cca) {
-        status = call STXONCCA.strobe();
-//        signal StateCapture.captured(CC2420_STXONCCA);
-        signal StateCapture.captured(STATE_TX);
-      }
-      else {
-        status = call STXON.strobe();
-//        signal StateCapture.captured(CC2420_STXON);
-        signal StateCapture.captured(STATE_TX);
-      }
-#else
       status = m_cca ? call STXONCCA.strobe() : call STXON.strobe();
+      signal StateCapture.captured(STATE_TX);
 #endif
 
       if ( !( status & CC2420_STATUS_TX_ACTIVE ) ) {
         status = call SNOP.strobe();
-
-//#ifdef CC2420_RADIO_STATE_CAPTURE
-//      signal StateCapture.captured(CC2420_SNOP);
-//#endif
 
         if ( status & CC2420_STATUS_TX_ACTIVE ) {
           congestion = FALSE;
@@ -917,7 +885,7 @@ implementation {
       call TXFIFO.write(TCAST(uint8_t * COUNT(tmpLen), header), header->length - 1);
     }
   }
-  
+
   void signalDone( error_t err ) {
     atomic m_state = S_STARTED;
     abortSpiRelease = FALSE;
@@ -925,15 +893,10 @@ implementation {
     signal Send.sendDone( m_msg, err );
 
 #ifdef CC2420_RADIO_STATE_CAPTURE
-//      signal StateCapture.captured(0x0F);
     signal StateCapture.captured(STATE_RX);
 #endif
 
   }
-
-//#ifdef CC2420_RADIO_STATE_CAPTURE
-//  default async event void StateCapture.captured(uint8_t val) { }
-//#endif
 
 }
 
