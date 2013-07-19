@@ -1,3 +1,11 @@
+/**
+ * @file    StateMonitorC.nc
+ * @author  Chengwu Huang <chengwhuang@gmail.com>
+ * @date    2013-07-19
+ * @brief   When debugging mode is active, the current radio state is printed
+ *          on your terminal with the timestamp.
+ */
+
 #ifndef CC2420_RADIO_STATE_CAPTURE
 # error \
 "*** RADIO STATE CAPTURE DISABLED: component `StateMonitorC' cannot be used ***"
