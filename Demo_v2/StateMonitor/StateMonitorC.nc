@@ -3,7 +3,6 @@
 "*** RADIO STATE CAPTURE DISABLED: component `StateMonitorC' cannot be used ***"
 #endif
 
-
 configuration StateMonitorC
 {
 }
