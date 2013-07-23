@@ -11,7 +11,12 @@
 #include "UserButton.h"
 #include "Timer.h"
 #include "StateMonitor.h"
+
+#ifdef PRINTFUART_ENABLED
 #include "blip_printf.h"
+#else
+#include "printf.h"
+#endif
 
 #define NOTIFY_DELAY 1000  // LED duration for notification
 
@@ -23,17 +28,21 @@ module StateMonitorP
 {
   provides interface Init;
 
-  uses
-  {
-    interface Leds;
-    interface Notify<button_state_t>;
-    interface Timer<TMilli>;
+  uses interface Leds;
+  uses interface Notify<button_state_t>;
+  uses interface Timer<TMilli>;
 
-    interface CC2420RadioStateCapture as PowerCapture;
-    interface CC2420RadioStateCapture as TxCapture;
-    interface CC2420RadioStateCapture as RxCapture;
-    interface Counter<TMicro, uint32_t> as Counter;
-  }
+  uses interface CC2420RadioStateCapture as PowerCapture;
+  uses interface CC2420RadioStateCapture as TxCapture;
+  uses interface CC2420RadioStateCapture as RxCapture;
+
+#if defined(COUNTER_MICRO_ENABLED)
+    uses interface Counter<TMicro, uint32_t> as Counter;
+#elif defined(COUNTER_32KHZ_ENABLED)
+   uses interface Counter<T32khz, uint32_t> as Counter;
+#else
+   uses interface Counter<TMilli, uint32_t> as Counter;
+#endif
 }
 implementation
 {
@@ -41,12 +50,10 @@ implementation
   /* Variables                                                                */
   /****************************************************************************/
   state_print_t monitor_buff[RING_BUFFER_SIZE]; // ring buffer
-  norace bool active = FALSE;  // TRUE: debugging mode enabled
-  uint8_t read       = 0;      // reading index
-  uint8_t write      = 0;      // writting index
-  norace uint32_t start_counter;
-  uint32_t timestamp;
-  uint8_t state;
+  norace bool active = FALSE;                   // TRUE: debugging mode enabled
+  uint8_t read       = 0;                       // reading index
+  uint8_t write      = 0;                       // writting index
+  norace uint32_t start_counter;                // starting timestamp
 
   /****************************************************************************/
   /* Functions and Tasks                                                      */
@@ -58,6 +65,9 @@ implementation
    */
   task void print_task()
   {
+    uint32_t timestamp;
+    uint8_t state;
+
     if (FALSE == active) { return; }  // debugging mode deactivated
     atomic {
       if (read == write) {
@@ -71,6 +81,7 @@ implementation
       state = monitor_buff[read].r_state;
       read = (read + 1) % RING_BUFFER_SIZE;
     }  // read values for printing
+    printfflush();
     printf("%lu %u\n", timestamp, state);
     post print_task();
   }
@@ -107,17 +118,21 @@ implementation
     if (BUTTON_PRESSED == val) {
       if (FALSE == active) {
         call Leds.led0On();
+#ifdef DEBUG_NOTIFICATION
         printf("Debugging mode activated\n");
         printfflush();
+#endif
         start_counter = call Counter.get();  // get current timestamp
         active = TRUE;
         post print_task();  // start displaying
       }  // debbuging mode activated
       else {
-        call Leds.led2On();
         active = FALSE;
+        call Leds.led2On();
+#ifdef DEBUG_NOTIFICATION
         printf("Debugging mode deactivated\n");
         printfflush();
+#endif
       }  // deactivated
     }  // button pressed
     call Timer.startOneShot(NOTIFY_DELAY);  // turn off LEDs
@@ -134,7 +149,7 @@ implementation
 
   /****************************************************************************/
   /* PowerCapture, TxCapture, RxCapture are triggered when radio events are   */
-  /* detected. The function `rb_write(uint8_t val)' will be called            */
+  /* detected. Call function `rb_write'                                       */
   /****************************************************************************/
   async event void PowerCapture.captured(uint8_t next_state)
   {

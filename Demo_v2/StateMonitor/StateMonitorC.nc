@@ -11,6 +11,19 @@
 "*** RADIO STATE CAPTURE DISABLED: component `StateMonitorC' cannot be used ***"
 #endif
 
+#if !defined(COUNTER_32KHZ_ENABLED) && !defined(COUNTER_MICRO_ENABLED)
+#warning "USING MILLISECOND COUNTER"
+#endif
+
+#ifdef COUNTER_32KHZ_ENABLED
+#undef COUNTER_MICRO_ENABLED
+#warning "*** USING 32KHZ COUNTER ***"
+#endif
+
+#ifdef COUNTER_MICRO_ENABLED
+#warning "*** USING MICROSECOND COUNTER ***"
+#endif
+
 configuration StateMonitorC
 {
 }
@@ -40,7 +53,14 @@ implementation
   components CC2420TransmitC;
   Monitor.TxCapture -> CC2420TransmitC.StateCapture;
 
-  components CounterMicro32C;
-  Monitor.Counter -> CounterMicro32C;
+#if defined(COUNTER_32KHZ_ENABLED)
+  components Counter32khz32C as Counter;
+#elif defined(COUNTER_MICRO_ENABLED)
+  components CounterMicro32C as Counter;
+#else
+  components CounterMilli32C as Counter;
+#endif
+
+  Monitor.Counter -> Counter;
 }
 
