@@ -7,10 +7,15 @@
 build/
 output/
 
+# local changes
+PPPSniffer/
+PppRouter/
+
 # automatically generated files
 ReportMsg.java
 *.class
 *.dat
+*.csv
 *.log
 *.aux
 *.png
