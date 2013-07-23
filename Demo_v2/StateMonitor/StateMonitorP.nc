@@ -10,7 +10,6 @@
 
 #include "UserButton.h"
 #include "Timer.h"
-#include "StateMonitor.h"
 
 #ifdef PRINTFUART_ENABLED
 #include "blip_printf.h"
@@ -21,7 +20,7 @@
 #define NOTIFY_DELAY 1000  // LED duration for notification
 
 #ifndef RING_BUFFER_SIZE
-#define RING_BUFFER_SIZE 56
+#define RING_BUFFER_SIZE 32
 #endif
 
 module StateMonitorP
@@ -49,7 +48,8 @@ implementation
   /****************************************************************************/
   /* Variables                                                                */
   /****************************************************************************/
-  state_print_t monitor_buff[RING_BUFFER_SIZE]; // ring buffer
+  uint32_t timestamp_buff[RING_BUFFER_SIZE];    // ring buffer (timestamps)
+  uint8_t state_buff[RING_BUFFER_SIZE];         // ring buffer (radio states)
   norace bool active = FALSE;                   // TRUE: debugging mode enabled
   uint8_t read       = 0;                       // reading index
   uint8_t write      = 0;                       // writting index
@@ -77,12 +77,12 @@ implementation
     }
 
     atomic {
-      timestamp = monitor_buff[read].r_duration;
-      state = monitor_buff[read].r_state;
+      timestamp = timestamp_buff[read];
+      state = state_buff[read];
       read = (read + 1) % RING_BUFFER_SIZE;
     }  // read values for printing
-    printfflush();
     printf("%lu %u\n", timestamp, state);
+    printfflush();
     post print_task();
   }
 
@@ -95,8 +95,9 @@ implementation
   {
     if (FALSE == active) { return; }
     atomic {
-      monitor_buff[write].r_state = val;
-      monitor_buff[write].r_duration = call Counter.get() - start_counter;
+      state_buff[write] = val;
+      timestamp_buff[write] = call Counter.get() - start_counter;
+
       write = (write + 1) % RING_BUFFER_SIZE;
     }  // write timestamp and radio state
   }
@@ -153,7 +154,6 @@ implementation
   /****************************************************************************/
   async event void PowerCapture.captured(uint8_t next_state)
   {
-//    if (0 == next_state) { call Leds.led1Toggle(); }
     rb_write(next_state);
   }
 
