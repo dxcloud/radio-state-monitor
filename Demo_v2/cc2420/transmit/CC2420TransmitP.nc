@@ -794,8 +794,9 @@ implementation {
 #endif
       call CSN.clr();
 
-#ifdef CC2420_RADIO_STATE_CAPTURE
       status = m_cca ? call STXONCCA.strobe() : call STXON.strobe();
+
+#ifdef CC2420_RADIO_STATE_CAPTURE
       signal StateCapture.captured(STATE_TX);
 #endif
 
